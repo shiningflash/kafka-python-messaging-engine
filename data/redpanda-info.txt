@@ -16,3 +16,4 @@ docker exec -it redpanda rpk topic produce chat-room
 Remarks:
 - Panda proxy api documentation available at localhost:8082/v1
 - We can access the api based on the api documentation, eg. localhost:8082/brokers, localhost:8082/topics
+- Full api documentation available at https://docs.redpanda.com/api/http-proxy-api/

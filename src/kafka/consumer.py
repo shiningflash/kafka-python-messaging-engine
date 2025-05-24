@@ -31,7 +31,8 @@ class KafkaConsumer:
                 if msg.error():
                     logger.error(f"Consumer error: {msg.error()}")
                     continue
-                logger.info(f"Consumed message: {msg.value().decode('utf-8')}")
+                decoded_message = msg.value().decode('utf-8')
+                logger.info(f"Consumed message: {decoded_message}")
         except KeyboardInterrupt:
             logger.info("Consumer interrupted by user.")
         except KafkaException as e:
