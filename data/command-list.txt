@@ -1,0 +1,15 @@
+poetry init
+poetry add confluent-kafka
+
+python -m venv venv
+source venv/bin/activate
+
+poetry env activate
+
+pip list
+
+# Terminal 1 (Consumer)
+python -m src.consumer_app
+
+# Terminal 2 (Producer)
+python -m src.producer_app

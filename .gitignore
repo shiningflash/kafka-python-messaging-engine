@@ -1,0 +1,72 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+logs/
+*.out
+
+# Unit test / coverage
+.coverage
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+htmlcov/
+.pytest_cache/
+
+# Environment variables
+.env
+.env.*
+
+# Kafka specific
+*.pid
+*.kafka
+
+# Docker
+*.pid
+*.db
+docker-compose.override.yml
+
+# MyPy & other linters
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Editable installs
+src/*.egg-info/
+
+# IDE Metadata
+*.swp
+*.swo
+*.bak
+*~

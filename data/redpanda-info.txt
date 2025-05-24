@@ -1,0 +1,18 @@
+# Run docker compose
+docker compose up
+
+# Get information about cluster
+docker exec -it redpanda rpk cluster info
+
+# Create topic
+docker exec -it redpanda rpk topic create chat-room
+
+# Describe topic
+docker exec -it redpanda rpk topic describe chat-room
+
+# Produce some message
+docker exec -it redpanda rpk topic produce chat-room
+
+Remarks:
+- Panda proxy api documentation available at localhost:8082/v1
+- We can access the api based on the api documentation, eg. localhost:8082/brokers, localhost:8082/topics
