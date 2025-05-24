@@ -1,6 +1,7 @@
+from uuid import uuid4
 from confluent_kafka import Producer
 from confluent_kafka.schema_registry.avro import AvroSerializer
-from confluent_kafka.serialization import SerializationContext, MessageField
+from confluent_kafka.serialization import SerializationContext, MessageField, StringSerializer
 
 from src.kafka.producer import KafkaProducer
 from src.logger import setup_logger
@@ -20,9 +21,11 @@ class AvroKafkaProducer(KafkaProducer):
             schema_registry_client=schema_registry_client,
             schema_str=schema_str
         )
+        self.key_serializer = StringSerializer(codec='utf-8')
 
     def send_message(self, message: str) -> None:
         try:
+            unique_key = str(uuid4())
             avro_byte_message = self.value_serializer(
                 obj=message,
                 ctx=SerializationContext(
@@ -30,7 +33,12 @@ class AvroKafkaProducer(KafkaProducer):
                     field=MessageField.VALUE
                 )
             )
-            self.producer.produce(self.topic, avro_byte_message)
+            self.producer.produce(
+                topic=self.topic,
+                key=self.key_serializer(unique_key),
+                value=avro_byte_message,
+                headers={"correlation_id": unique_key}
+            )
             logger.info(f"Message sent: {avro_byte_message}")
         except BufferError as e:
             logger.error(f"Local producer queue is full: {e}")
