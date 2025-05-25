@@ -14,8 +14,8 @@ class AvroKafkaProducer(KafkaProducer):
     """
     AvroKafkaProducer handles message production to a Kafka topic.
     """
-    def __init__(self, bootstrap_server: str, topic: str, schema_registry_client, schema_str: str):
-        super().__init__(bootstrap_server=bootstrap_server, topic=topic)
+    def __init__(self, bootstrap_server: str, topic: str, schema_registry_client, schema_str: str, compression_type="snappy"):
+        super().__init__(bootstrap_server=bootstrap_server, topic=topic, config={"compression.type": compression_type})
         self.schema_registry_client = schema_registry_client
         self.schema_str = schema_str
         self.value_serializer = AvroSerializer(
