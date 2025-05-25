@@ -9,49 +9,57 @@ logger = setup_logger(__name__)
 
 class AvroKafkaConsumer:
     """
-    AvroKafkaConsumer handles message consumption from a Kafka topic.
+    AvroKafkaConsumer handles Avro-encoded batch consumption from a Kafka topic.
     """
-    def __init__(self, bootstrap_server: str, topic: str, group_id: str, schema_client_registry, schema_str):
+
+    def __init__(
+        self,
+        bootstrap_server: str,
+        topic: str,
+        group_id: str,
+        schema_registry_client,
+        schema_str: str,
+        batch_size: int = 10,
+        poll_timeout: float = 1.0
+    ):
         self.topic = topic
+        self.batch_size = batch_size
+        self.poll_timeout = poll_timeout
         self.consumer = Consumer({
             "bootstrap.servers": bootstrap_server,
             "group.id": group_id,
             "auto.offset.reset": "earliest"
         })
-        self.value_deserializer = AvroDeserializer(
-            schema_registry_client=schema_client_registry,
-            schema_str=schema_str
-        )
+        self.value_deserializer = AvroDeserializer(schema_registry_client, schema_str)
 
     def start(self) -> None:
-        """ 
-        Subscribe and begin consuming messages.
-        """
         self.consumer.subscribe([self.topic])
         logger.info(f"Subscribed to topic: {self.topic}")
 
         try:
             while True:
-                msg = self.consumer.poll(timeout=1.0)
-                if msg is None:
-                    continue
-                if msg.error():
-                    logger.error(f"Consumer error: {msg.error()}")
-                    continue
-                byte_message = msg.value()
-                logger.info(f"Byte message: {byte_message}. Type: {type(byte_message)}")
-                deserialized_message = self.value_deserializer(
-                    data=byte_message,
-                    ctx=SerializationContext(
-                        topic=self.topic,
-                        field=MessageField.VALUE
+                messages = self.consumer.consume(num_messages=self.batch_size, timeout=self.poll_timeout)
+                for msg in messages:
+                    if msg is None:
+                        continue
+                    if msg.error():
+                        logger.error(f"Kafka error: {msg.error()}")
+                        continue
+
+                    raw_value = msg.value()
+                    if raw_value is None:
+                        logger.info(f"Received tombstone for key={msg.key()}")
+                        continue
+
+                    deserialized = self.value_deserializer(
+                        data=raw_value,
+                        ctx=SerializationContext(self.topic, MessageField.VALUE)
                     )
-                )
-                logger.info(f"Deserialized message: {deserialized_message}. Type: {type(deserialized_message)}")
+                    logger.info(f"Consumed message: {deserialized}")
         except KeyboardInterrupt:
-            logger.info("Consumer interrupted by user.")
-        except KafkaException as e:
-            logger.exception("Kafka error occurred.")
+            logger.info("Consumer interrupted.")
+        except KafkaException:
+            logger.exception("Kafka exception during consumption.")
         finally:
             self.consumer.close()
             logger.info("Consumer shutdown cleanly.")
