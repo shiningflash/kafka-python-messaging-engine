@@ -5,6 +5,7 @@ from confluent_kafka.serialization import SerializationContext, MessageField, St
 
 from src.kafka.producer import KafkaProducer
 from src.logger import setup_logger
+from src.utils import delivery_report
 
 logger = setup_logger(__name__)
 
@@ -13,7 +14,7 @@ class AvroKafkaProducer(KafkaProducer):
     """
     AvroKafkaProducer handles message production to a Kafka topic.
     """
-    def __init__(self, bootstrap_server: str, topic: str, schema_registry_client, schema_str):
+    def __init__(self, bootstrap_server: str, topic: str, schema_registry_client, schema_str: str):
         super().__init__(bootstrap_server=bootstrap_server, topic=topic)
         self.schema_registry_client = schema_registry_client
         self.schema_str = schema_str
@@ -37,7 +38,8 @@ class AvroKafkaProducer(KafkaProducer):
                 topic=self.topic,
                 key=self.key_serializer(unique_key),
                 value=avro_byte_message,
-                headers={"correlation_id": unique_key}
+                headers={"correlation_id": unique_key},
+                on_delivery=delivery_report
             )
             logger.info(f"Message sent: {avro_byte_message}")
         except BufferError as e:
